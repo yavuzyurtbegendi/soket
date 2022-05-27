@@ -1,0 +1,56 @@
+<html>
+  <head>
+    <title>Free Flow Socket</title>
+  </head>
+  <style>
+    #flow-area {
+      text-align: left;
+      background: #f8f8f8;
+      height: 200px;
+      padding: 20px;
+      width: 800px;
+      overflow: auto;
+    }
+
+    #flow-text {
+      border: 1px solid #e8e8e8;
+      padding: 5px 10px;
+      border-radius: 5px;
+      width: 840px;
+    }
+  </style>
+  <body>
+    <h3>Free Flow Socket</h3>
+    <pre id="flow-area"></pre>
+    <input type="text" placeholder="Your Words + Enter" id="flow-text" />
+    <script>
+      var webSocket = new WebSocket("ws://" + window.location.host + "/ws");
+      var flowArea = document.getElementById("flow-area");
+      var flowText = document.getElementById("flow-text");
+      webSocket.onmessage = function(msg) {
+        if (msg.hasOwnProperty("sessionId")) {
+          return;
+        }
+        flowArea.innerText += (new Date().toISOString() + " " + msg.data + "\n");
+        scrollToBottom("flow-area");
+      };
+      webSocket.onclose = function(event) {
+        if (event.wasClean) {
+          alert(`[close] Connection closed cleanly, code=${event.code} reason=${event.reason}`);
+        } else {
+          alert('[close] Connection died');
+        }
+      };
+      flowText.onkeydown = function(e) {
+        if (e.keyCode === 13 && flowText.value !== "") {
+          webSocket.send(flowText.value);
+          flowText.value = "";
+        }
+      };
+      function scrollToBottom(id) {
+        const element = document.getElementById(id);
+        element.scrollTop = element.scrollHeight;
+      }
+    </script>
+  </body>
+</html>
